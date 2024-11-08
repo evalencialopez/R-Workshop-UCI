@@ -1,0 +1,257 @@
+---
+title: "Introduction to R"
+author: "Enrique Valencia Lopez"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    df_print: paged
+  html_notebook:
+    toc: true
+    toc_float: true
+---
+
+# Introduction to R 
+
+Welcome to this introductory R  notebook! This tutorial will guide you through the basics of R. 
+Our goals for today's workshop are:
+
+1.  Demonstrate how to navigate R-Studio.
+
+2.  Define what R is useful and not useful for.
+
+3.  Use code to create variables and vectors.
+
+4. Some basic functions and (very basic) plots
+
+Follow along by running each code chunk and trying the exercises.
+
+# Preliminary: The Global Environment
+
+```{r}
+###Remove objects in the global environment 
+cat("\014") #Clear console
+rm(list = ls())  # Remove all objects in the global environment
+
+```
+
+All variables created show up in the Global Environment (top right panel).
+
+```{r}
+# print a list of all variables in your environment
+ls()
+```
+Let's create some 
+```{r}
+year<-c(1998, 1999, 2000)
+flowers<-c("Rose", "Tulips", "Marygold")
+famous_cats<-c("Garfield", "Puss in Boots", "Snowbell", "Cheshire Cat")
+
+```
+
+You can remove variables from the global environment.
+
+```{r}
+
+# remove a single variable
+rm(famous_cats)
+
+```
+
+```{r}
+# remove all variables in the global environment
+rm(list = ls())
+```
+
+
+
+## 1. Variables and Data Types
+
+In R, we can store different types of data in variables. Let's explore the main data types:
+
+```{r}
+# Create numeric, character, and logical variables
+num_variable <- 42
+char_variable <- "Hello, World"
+logic_variable <- TRUE
+
+# Print the variables
+print(num_variable)
+print(char_variable)
+print(logic_variable)
+
+# Check their data types
+class(num_variable)
+class(char_variable)
+class(logic_variable)
+```
+
+### 💫 Your Turn!
+Create three new variables of different types and print their classes:
+- A numeric variable called `Year_of_Birth`
+- A character variable called `My_Fav_Sport`
+- A logical variable called `Need_Break`
+
+```{r}
+# Write your code here
+
+
+```
+
+## 2. Vectors
+
+Vectors are one-dimensional arrays that can hold data of the same type. They're one of the most fundamental data structures in R.
+
+```{r}
+# Create different types of vectors
+num_vector <- c(2024, 2025, 2026, 2027)
+char_vector <- c("Joe Bruin", "Peter the Anteater", "Oski Bear")
+logic_vector <- c(TRUE, FALSE, TRUE)
+mixed_vector<-c(1,2,3, "Tree") ##What class do you think this vector will be
+
+# Print the vectors
+print(num_vector)
+print(char_vector)
+print(logic_vector)
+print(mixed_vector)
+
+# Access elements of a vector (R uses 1-based indexing)
+print(num_vector[3])  # Get the third element
+print(char_vector[2]) # Get the second element
+```
+
+### 💫 Your Turn!
+Create a vector of your three activities you enjoy doing in your free time and then access the second activity in your vector.
+
+```{r}
+# Write your code here
+```
+
+## 3. Basic Operations
+
+R can perform various mathematical operations. 
+
+```{r}
+# Basic arithmetic
+a <- 10
+b <- 3
+
+# Addition
+print(a + b)
+
+# Subtraction
+print(a - b)
+
+# Multiplication
+print(a * b)
+
+# Division
+print(a / b)
+
+# Integer division
+print(a %/% b)
+
+# Modulus (remainder)
+print(a %% b)
+
+# Powers
+print(a ^ 2)
+
+#You can also do:
+  print(1+2)
+```
+
+### 💫 Your Turn!
+Calculate the area and perimeter of a rectangle with length 8 and width 5 inches.
+
+```{r}
+# Write your code here
+```
+
+## 4. Functions
+
+R has many built-in functions that help us analyze data:
+
+```{r}
+# Create a vector of random numbers
+random_vector <- sample(1:100, 20)
+
+# Calculate basic statistics
+print(mean(random_vector))    # Average
+print(median(random_vector))  # Median
+print(sd(random_vector))      # Standard deviation
+print(sum(random_vector))     # Sum
+print(length(random_vector))  # Length
+
+# Sort the vector
+sorted_vector <- sort(random_vector)
+print(sorted_vector)
+```
+
+## 5. Data Frames
+
+Data frames are table-like structures that can hold different types of data:
+
+```{r}
+# Create a data frame
+UCs <- data.frame(
+  name = c("Peter the Anteater", "Joe the Bruin", "Oski Bear", "King Triton"),
+  age = c(59, 105, 156, 63),
+  length_campus = c(1475, 419, 178, 1976),
+  Southern_California = c(TRUE, TRUE, FALSE, TRUE)
+)
+
+# View the data frame
+print(UCs)
+
+# Access columns
+print(UCs$name)
+print(UCs$age)
+
+# Get basic information about the data frame
+str(UCs)
+summary(UCs)
+```
+
+## 6. Basic Plotting
+
+R has some powerful plotting capabilities. 
+
+```{r}
+# Create a histogram
+hist(UCs$age, 
+     main = "Distribution of Ages of the UCs",
+     xlab = "Age",
+     ylab = "Frequency",
+     col = "lightblue",
+     border = "white")
+
+# Create a scatter plot
+plot(UCs$age, UCs$length_campus,
+     main = "Age of the UCs vs. Length of Campus",
+     xlab = "Age of the UCs",
+     ylab = "Length of campus",
+     pch = 19, 
+     col = "blue")
+```
+
+For  pch, see [plotting symbols](http://www.sthda.com/english/wiki/r-plot-pch-symbols-the-different-point-shapes-available-in-r)
+
+## 7. Final Exercise
+
+Now let's put everything together! Complete the following tasks:
+
+1. Create a data frame containing information about 5 movies you enjoy:
+   - Include columns for: title, year, your personal rating (1-10), and genre
+2. Calculate the average rating of all five movies
+3. Create a histogram showing the ratings for each movie
+4. Find the oldest and newest movies in your dataset
+
+```{r}
+# Write your solution here
+```
+
+## Congratulations! 🎉
+You've completed part 1.
+Part of this workshop was based on [Berkeley's R Fundamental's](https://github.com/dlab-berkeley/R-Fundamentals) and [UC Irvine's R online resources](https://guides.lib.uci.edu/dataanalysis/r)
+
