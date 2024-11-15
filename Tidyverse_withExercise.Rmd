@@ -1,0 +1,277 @@
+---
+title: "Introduction to the Tidyverse: Part 1"
+subtitle: "Using IPUMS Census Data"
+author: "Enrique Valencia López"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: united
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+### Last week:
+
+The base data structures in R are vectors, matrices, arrays, data frames, and lists. 
+
+```{r}
+#*Vector: A collection of elements of the same type (numeric, character, logical, etc.)
+vector<-c(1, 2, 3)
+
+vector
+#Matrices: A two-dimensional structure with elements of the same type, arranged in rows and columns.
+matrix(1:6, nrow = 2, ncol = 3)
+
+##Arrays: Multidimensional structures with elements of the same type.
+array(1:8, dim = c(2, 2, 2)) 
+
+## Dataframes: A table-like structure where each column can be a different type (e.g., numeric, character).
+
+data.frame(name = c("Alice", "Bob"), age = c(25, 30))
+
+##Lists: A collection of elements of potentially different types and sizes. Completely heterogeneous; can contain vectors, matrices, data frames, or even other lists
+list(name = "Alice", age = 25, scores = c(90, 95, 100))
+
+```
+
+## This week: Goals of the workshop
+
+In this part, you will learn about tidyverse--an ecosystem of open source packages that allow users to manipulate and analyze data more efficiently. Tidyverse embraces the tidy tools manifesto, which states four principles that guide the packages they develop. You can learn more about the tidy tools manifest [here](https://cran.r-project.org/web/packages/tidyverse/vignettes/manifesto.html)
+
+## Setup 
+```{r packages}
+
+##We first clean console:
+
+rm(list = ls())  # Remove all objects in the global environment
+
+
+# Now, we install required packages if not already installed
+if (!require("tidyverse")) install.packages("tidyverse")
+if (!require("psych")) install.packages("psych")
+if (!require("haven")) install.packages("haven")
+
+
+
+# Load libraries
+library(tidyverse)
+library(psych)
+library(haven)
+
+```
+
+## Core Concepts and Packages
+
+### The Tidyverse Philosophy
+- Consistent syntax and data structures
+- The pipe operator (`%>%`)
+- Tidy data principles
+
+Pipes are a powerful tool for clearly expressing a sequence of multiple operations. The pipe, %>%, comes from the magrittr package by Stefan Milton Bache. 
+
+## Why is the pipe operator %>% useful?
+Let's look at an example. Imagine we want to recode a numeric variable age into an ordinal variable. In base R, it would be:
+```{r}
+age <- c(15, 22, 45, 67, 80)
+
+# Recode using ifelse
+age_group <- ifelse(age < 18, "Youth", 
+                    ifelse(age < 65, "Adult", "Senior"))
+
+age_group
+```
+Let's breakdown the code: 
+
+ifelse() is a vectorized function in base R that allows you to apply a conditional statement to each element of a vector. It’s essentially a way to evaluate an expression and return different values depending on whether the condition is TRUE or FALSE.
+
+
+In tidyverse, we would:
+
+```{r}
+age <- c(15, 22, 45, 67, 80)
+
+# Convert to tibble
+my_tibble <- tibble(age = age)
+
+# Recode with mutate and case_when
+age_group <- my_tibble %>%
+  mutate(age_group = case_when(
+    age < 18 ~ "Youth",
+    age < 65 ~ "Adult",
+    TRUE ~ "Senior"
+  ))
+
+age_group
+
+```
+A tibble in R is a modern version of a data.frame, provided by the tibble package (which is part of the tidyverse). It was designed to address some limitations of data.frame objects in R: Printing behavior (it shows few columns as default), column types (you can get labels and values at once, for example), subsetting (subsetting is easier), and efficiency with larger datasets. Case_when is also a better way than if_else to recode data since you can recode multiple conditions without having to repeat the original instruction.
+
+## Basic Functions Practice
+
+### dplyr Fundamentals
+Dplyr is a package for data manipulation. It makes it easier to transform and analyze data. Common data tasks are:
+```{r dplyr_basics}
+# Sample operations we'll use with IPUMS data
+sample_operations <- function(data) {
+  data %>%
+    select() %>%    # Select relevant columns
+    filter() %>%    # Filter rows based on conditions
+    arrange() %>%   # Sort data
+    group_by() %>%  # Group for analysis
+    summarize()     # Calculate summary statistics
+}
+```
+
+
+## Real-world Analysis: IPUMS 1850 dataset
+We will look at some of the variables for the 1850 dataset. 
+
+First, we define a working directory, the place where our datafile will be stored
+
+```{r}
+getwd()
+setwd("/Users/eevalen1/Desktop/MUST project/R workshop")
+
+
+```
+Then, we load the data on R
+```{r load_data}
+# Read IPUMS extract 
+data<-read_dta("usa_00004.dta")
+data <- as_factor(data)
+
+```
+We get an idea of the variables on the dataset
+```{r clean_data}
+
+list(data)
+```
+
+### Analysis 1: Gender and Occupational Education Score (1950)
+The OES represents the percentage of people in the respondent's occupational category who had completed one or more years of college. For example, Farmers have a score of 4.6, meaning 4.6 percent of farmers in the USA in 1850 had one or more years of college in 1950 (year the first score was calculated). 
+
+Let's now get the average edscor by gender:
+```{r gender and OES}
+data %>%
+  mutate(edscor50 = as.numeric(as.character(edscor50))) %>% ###mutate creates new columns that are functions of existing variables
+  group_by(sex) %>%
+  summarise(
+    mean_edscor = mean(edscor50, na.rm = TRUE),
+    n = n() ##it gives us the counts that result from the previous operation, in this case the grouping by sex and the counts used to estimate the mean scores. 
+  )
+```
+
+What do you notice? We need to recode 999.9 as missing
+
+```{r}
+data %>%
+  mutate(
+    edscor50 = as.numeric(as.character(edscor50)),
+    edscor50 = case_when(
+      edscor50 == 999.9 ~ NA_real_,  # Recode 999.9 as missing
+      TRUE ~ edscor50                # Keep all other values unchanged
+    )
+  ) %>% 
+  group_by(sex) %>%
+  summarise(
+    mean_edscor = median(edscor50, na.rm = TRUE),  # Calculate median ignoring NA
+    n = n()  # Count total observations
+  )
+
+```
+What can we conclude from this data? Females weren't asked about this information in 1850s! Only males 15 year or older. But for males, we see that the mean occupational score in 1850 implied that 50 percent of the males in our sample worked in occupations where 4.6 of the individuals in that occupation had attained a first year of college (in 1950), so very low skilled occupations. We can check the 1850 occupation classification [here](https://usa.ipums.org/usa/volii/occ1880.shtml)
+
+```{r}
+data %>%
+  filter(sex=="male") %>%
+  count(occ, name = "frequency") %>%
+  arrange(desc(frequency)) %>%
+  mutate(percentage = round((frequency/sum(frequency))*100, 2))
+
+```
+A lot of missing occupations. This is partly the result of measurement error. The main occupations are farmers, planters, laborers, carpenters and joiners, boot and shoemakers, traders and dealers. What does that tell you about the American economy at the time? The US was still a predominantly agrarian society. 
+
+
+### Analysis 2: What's the proportion of married women aged 14-18 in 1850?
+We need three variables, sex, age and relationship to the household head==spouse. We will exclude female-only heads of households. 
+
+```{r}
+# Calculate the proportion of married women aged 14-18
+# Calculate the proportion of married women aged 14-18
+proportion_married <- data %>%
+  # Convert `age` to numeric to allow filtering
+  mutate(age = as.numeric(as.character(age))) %>%
+  # Filter for females aged 14-18 with marital status code indicating married
+  filter(sex == "female", age >= 14, age <= 18, relate == "spouse") %>%
+  # Calculate the proportion
+  summarize(proportion = n() / nrow(filter(data, sex == "female", as.numeric(as.character(age)) >= 14, as.numeric(as.character(age)) <= 18))) %>% ##Remember here n() will give you the n from the previous operaction, which is those that meet the condition of female, ages 14-18 and are spouses
+  pull(proportion)
+
+# Print the result
+proportion_married*100
+
+
+
+```
+
+### Your turn!
+
+Now, as an exercise, we are going to estimate the literacy rate by race. Only include population 15-99 years old at the time of the census. An iliterate person, for the purposes of this exercise, is someone who cannot either read or write or cannot read and write. 
+
+```{r}
+##We first check the distibution of race and literacy
+table(data$race)
+table(data$lit)
+
+```
+
+```{r}
+###Here is an example of how to recode the variable literacy into a binary (dummy) variable: Literate and Illiterate, define n/a as missing. :
+data <- data %>%
+  mutate(
+    lit_recode = case_when(
+      lit %in% c("n/a", "unknown, illegible or blank") ~ NA_character_, #The %in% here allows you to include different categories of a variable, but remember to put them in a vectorized form (e.g. use c())
+      lit == "yes, literate (reads and writes)" ~ "literate",
+      TRUE ~ "illiterate"))
+
+
+
+
+## now recode race:
+
+
+```
+
+
+```{r}
+##now we check the recoding worked:
+
+
+```
+
+```{r}
+###Create the table
+
+```
+
+
+## Best Practices
+
+1. Use meaningful variable names
+2. Break complex operations into steps
+3. Comment your code
+4. Handle missing values appropriately
+
+## Resources for Further Learning
+
+- [IPUMS USA Documentation](https://usa.ipums.org/usa/)
+- [R for Data Science](https://r4ds.had.co.nz/)
+- [Tidyverse Documentation](https://www.tidyverse.org/)
+- [IPUMS + R Tutorials](https://tech.popdata.org/ipumsr/)
+
+
