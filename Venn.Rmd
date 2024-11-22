@@ -1,0 +1,147 @@
+# Merging Data
+
+In this notebook we will explore how to merge data using SQL Joins, but in R. 
+SQL joins are the foundation of database management systems, enabling the combination of data from multiple tables based on relationships between columns. 
+
+
+
+## Setup
+
+First, let's create our sample datasets and load required libraries:
+
+```{r}
+library(dplyr)
+
+# Create sample datasets
+customers <- data.frame(
+  student_id = c(1, 2, 3, 4),
+  name = c("Oski", "Peter", "Joe", "Tree"),
+  stringsAsFactors = FALSE
+)
+
+orders <- data.frame(
+  order_id = c(101, 102, 103, 104),
+  customer_id = c(1, 2, 2, 5),
+  amount = c(100, 150, 200, 300)
+)
+```
+
+```{r}
+customers
+```
+
+
+```{r}
+orders
+
+```
+
+## 1. Left Join
+
+<svg width="200" height="150" viewBox="0 0 200 150">
+  <!-- Left circle (customers) -->
+  <circle cx="85" cy="75" r="50" fill="#7cb9e8" fill-opacity="0.6" stroke="black"/>
+  <!-- Right circle (orders) -->
+  <circle cx="115" cy="75" r="50" fill="none" stroke="black" stroke-dasharray="5,5"/>
+  <!-- Labels -->
+  <text x="45" y="75" font-size="12">Customers</text>
+  <text x="135" y="75" font-size="12">Orders</text>
+</svg>
+
+Left join keeps all records from the left table (customers) and matching records from the right table (orders). Non-matching records from the left table are filled with NA.
+
+```{r}
+left_result <- left_join(customers, orders, by = "customer_id")
+print(left_result)
+```
+
+## 2. Right Join
+
+<svg width="200" height="150" viewBox="0 0 200 150">
+  <!-- Left circle (customers) -->
+  <circle cx="85" cy="75" r="50" fill="none" stroke="black" stroke-dasharray="5,5"/>
+  <!-- Right circle (orders) -->
+  <circle cx="115" cy="75" r="50" fill="#7cb9e8" fill-opacity="0.6" stroke="black"/>
+  <!-- Labels -->
+  <text x="45" y="75" font-size="12">Customers</text>
+  <text x="135" y="75" font-size="12">Orders</text>
+</svg>
+
+Right join keeps all records from the right table (orders) and matching records from the left table (customers). Non-matching records from the right table are filled with NA.
+
+```{r}
+right_result <- right_join(customers, orders, by = "customer_id")
+print(right_result)
+```
+
+## 3. Inner Join
+
+<svg width="200" height="150" viewBox="0 0 200 150">
+  <!-- Left circle (customers) -->
+  <circle cx="85" cy="75" r="50" fill="none" stroke="black"/>
+  <!-- Right circle (orders) -->
+  <circle cx="115" cy="75" r="50" fill="none" stroke="black"/>
+  <!-- Intersection -->
+  <path d="M 115,75 m -30,0 a 30,30 0 0,0 60,0 a 30,30 0 0,0 -60,0" 
+        fill="#7cb9e8" fill-opacity="0.6"/>
+  <!-- Labels -->
+  <text x="45" y="75" font-size="12">Customers</text>
+  <text x="135" y="75" font-size="12">Orders</text>
+</svg>
+
+Inner join only keeps records that exist in both tables. No NA values in the joining columns.
+
+```{r}
+inner_result <- inner_join(customers, orders, by = "customer_id")
+print(inner_result)
+```
+
+## 4. Full Join
+
+<svg width="200" height="150" viewBox="0 0 200 150">
+  <!-- Left circle (customers) -->
+  <circle cx="85" cy="75" r="50" fill="#7cb9e8" fill-opacity="0.6" stroke="black"/>
+  <!-- Right circle (orders) -->
+  <circle cx="115" cy="75" r="50" fill="#7cb9e8" fill-opacity="0.6" stroke="black"/>
+  <!-- Labels -->
+  <text x="45" y="75" font-size="12">Customers</text>
+  <text x="135" y="75" font-size="12">Orders</text>
+</svg>
+
+Full join keeps all records from both tables. Non-matching records are filled with NA.
+
+```{r}
+full_result <- full_join(customers, orders, by = "customer_id")
+print(full_result)
+```
+
+## 5. Anti Join
+
+<svg width="200" height="150" viewBox="0 0 200 150">
+  <!-- Left circle (customers) -->
+  <circle cx="85" cy="75" r="50" fill="#7cb9e8" fill-opacity="0.6" stroke="black"/>
+  <!-- Right circle (orders) -->
+  <circle cx="115" cy="75" r="50" fill="none" stroke="black"/>
+  <!-- Hide intersection -->
+  <path d="M 115,75 m -30,0 a 30,30 0 0,0 60,0 a 30,30 0 0,0 -60,0" 
+        fill="white"/>
+  <!-- Labels -->
+  <text x="45" y="75" font-size="12">Customers</text>
+  <text x="135" y="75" font-size="12">Orders</text>
+</svg>
+
+Anti join returns only the records from the first table that have no match in the second table.
+
+```{r}
+anti_result <- anti_join(customers, orders, by = "customer_id")
+print(anti_result)
+```
+
+## Key Points
+
+1. The `by` parameter specifies which column(s) to join on
+2. You can join on multiple columns using `by = c("col1", "col2")`
+3. For different column names, use `by = c("customer_id" = "id")`
+4. Join order matters (except in full join)
+5. NA values are used for non-matching records in left, right, and full joins
+
